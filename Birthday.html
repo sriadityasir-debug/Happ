@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birthday Surprise</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: black;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* --- Falling Emojis --- */
+        .emoji {
+            position: absolute;
+            top: -50px;
+            font-size: 2rem;
+            animation-name: fall;
+            animation-timing-function: linear;
+            animation-fill-mode: forwards;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(110vh); opacity: 0; }
+        }
+
+        /* --- Text Popups --- */
+        .popup-text {
+            position: absolute;
+            color: #ff69b4; /* Hot pink text */
+            font-size: 3rem;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 1s ease;
+            z-index: 10;
+            text-shadow: 0 0 10px rgba(255, 105, 180, 0.7);
+        }
+
+        #final-msg {
+            color: white;
+            font-size: 4rem;
+            text-align: center;
+            font-family: 'Brush Script MT', cursive;
+            text-shadow: 0 0 20px #FFD700;
+        }
+
+        /* --- The White Screen Flash --- */
+        #white-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 100; /* On top of everything */
+            transition: opacity 0.2s ease-in; /* Fast flash in */
+        }
+
+        /* --- The Slideshow --- */
+        #slideshow-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: none; /* Hidden initially */
+            z-index: 50;
+        }
+
+        .slide-img {
+            position: absolute;
+            top: 50%;
+            left: 100%; /* Start off screen right */
+            transform: translateY(-50%);
+            /* Set a fixed height for consistency, auto width maintains aspect ratio */
+            height: 60vh; 
+            width: auto;
+            border: 5px solid white;
+            box-shadow: 0 0 15px rgba(255,255,255,0.5);
+            /* Speed of the slide */
+            animation: slideLeft 0.6s linear forwards; 
+        }
+
+        @keyframes slideLeft {
+            0% { left: 100%; }
+            100% { left: -60%; } /* Move completely off left screen */
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="emoji-container"></div>
+
+    <div id="msg-cutie" class="popup-text">Dear Cutie...</div>
+
+    <div id="white-screen"></div>
+
+    <div id="slideshow-container">
+        <img class="slide-img" id="img1" src="photo1.jpg" alt="Photo 1">
+        <img class="slide-img" id="img2" src="photo2.jpg" alt="Photo 2">
+        <img class="slide-img" id="img3" src="photo3.jpg" alt="Photo 3">
+        <img class="slide-img" id="img4" src="photo4.jpg" alt="Photo 4">
+        <img class="slide-img" id="img5" src="photo5.jpg" alt="Photo 5">
+    </div>
+
+    <div id="final-msg" class="popup-text">Happy Birthday</div>
+
+    <script>
+        const emojiContainer = document.getElementById('emoji-container');
+        const msgCutie = document.getElementById('msg-cutie');
+        const whiteScreen = document.getElementById('white-screen');
+        const slideshowContainer = document.getElementById('slideshow-container');
+        const finalMsg = document.getElementById('final-msg');
+        const images = document.querySelectorAll('.slide-img');
+
+        // 1. Start Falling Emojis
+        function createEmoji() {
+            const emojis = ['💖', '🌸', '✨', '🦋', '🥰', '🧁'];
+            const e = document.createElement('div');
+            e.classList.add('emoji');
+            e.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+            
+            // Randomize position
+            e.style.left = Math.random() * 100 + 'vw';
+            
+            // Randomize speed (Around 10 seconds as requested)
+            const duration = 10 + Math.random() * 3; 
+            e.style.animationDuration = duration + 's';
+            
+            emojiContainer.appendChild(e);
+
+            // Clean up DOM
+            setTimeout(() => { e.remove(); }, duration * 1000);
+        }
+
+        // Create emojis continuously
+        let emojiInterval = setInterval(createEmoji, 300);
+
+        // --- THE TIMELINE ---
+
+        // Step 1: Show "Dear Cutie" after 2 seconds
+        setTimeout(() => {
+            msgCutie.style.opacity = 1;
+        }, 2000);
+
+        // Step 2: Trigger WHITE FLASH at 6 seconds
+        setTimeout(() => {
+            // Flash ON
+            whiteScreen.style.opacity = 1;
+
+            // While screen is white, clean up previous stuff
+            setTimeout(() => {
+                clearInterval(emojiInterval); // Stop making emojis
+                emojiContainer.innerHTML = ''; // Remove existing emojis
+                msgCutie.style.opacity = 0; // Remove "Dear Cutie"
+                msgCutie.style.display = 'none'; 
+            }, 500); 
+
+            // Step 3: Remove Flash after 5 SECONDS (Total 11s mark)
+            setTimeout(() => {
+                whiteScreen.style.transition = "opacity 1s ease"; 
+                whiteScreen.style.opacity = 0;
+
+                // Step 4: Start Slideshow immediately after flash fades
+                startSlideshow();
+
+            }, 5000); // Wait 5 seconds on white screen
+
+        }, 6000);
+
+        function startSlideshow() {
+            slideshowContainer.style.display = 'block';
+            
+            // We have 5 images. We trigger them fast.
+            images.forEach((img, index) => {
+                // Hide initially 
+                img.style.display = 'none';
+                
+                setTimeout(() => {
+                    img.style.display = 'block';
+                }, index * 600); // 0.6 second delay between each photo
+            });
+
+            // Step 5: Final Popup after slides are done
+            // 5 images * 0.6s gap + 0.6s animation time approx
+            setTimeout(() => {
+                slideshowContainer.style.display = 'none'; // Hide slides
+                finalMsg.style.opacity = 1; // Show Happy Birthday
+            }, (images.length * 600) + 600);
+        }
+
+    </script>
+</body>
+</html>
